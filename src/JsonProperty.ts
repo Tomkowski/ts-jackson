@@ -7,6 +7,7 @@ import { ReflectMetaDataKeys } from './common'
 type Params<P> = {
   path?: string
   paths?: string[]
+  pathAlternatives?: string[]
   required?: boolean
   type?:
     | (new (...args: any[]) => P)
@@ -53,11 +54,13 @@ export default function JsonProperty<P = unknown>(
         params.type || Reflect.getMetadata('design:type', target, propertyName),
     }
 
-    const existingMetadata: Record<string, JsonPropertyMetadata<P>> =
-      Reflect.getMetadata(
-        ReflectMetaDataKeys.TsJacksonJsonProperty,
-        target.constructor
-      ) || {}
+    const existingMetadata: Record<
+      string,
+      JsonPropertyMetadata<P>
+    > = Reflect.getMetadata(
+      ReflectMetaDataKeys.TsJacksonJsonProperty,
+      target.constructor
+    ) || {}
 
     existingMetadata[propertyName] = metadata
 

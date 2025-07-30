@@ -29,13 +29,11 @@ export default function deserialize<T, U extends Array<unknown>>(
   ...args: U
 ): T {
   assertSerializable(serializableClass)
-  const propsMetadata: Record<
-    string,
-    JsonPropertyMetadata
-  > = Reflect.getMetadata(
-    ReflectMetaDataKeys.TsJacksonJsonProperty,
-    serializableClass
-  )
+  const propsMetadata: Record<string, JsonPropertyMetadata> =
+    Reflect.getMetadata(
+      ReflectMetaDataKeys.TsJacksonJsonProperty,
+      serializableClass
+    )
   const resultClass = new serializableClass(...args)
   const jsonObject = typeof json === 'string' ? JSON.parse(json) : json
   const propertiesAfterDeserialize: {
@@ -44,9 +42,7 @@ export default function deserialize<T, U extends Array<unknown>>(
     afterDeserialize: JsonPropertyMetadata['afterDeserialize']
   }[] = []
   for (const [propName, propParams] of Object.entries(propsMetadata)) {
-    const jsonValue = propParams.paths
-      ? propParams.paths.map((path) => get(jsonObject, path))
-      : get(jsonObject, propParams.path)
+    const jsonValue = evaluateJsonValueByPath(jsonObject, propParams)
     propParams.required &&
       assertRequired({
         json: jsonObject,
@@ -135,4 +131,17 @@ function deserializeProperty(
       }
     }
   }
+}
+
+function evaluateJsonValueByPath(
+  jsonObject: any,
+  propParams: JsonPropertyMetadata
+) {
+  if (propParams.paths)
+    return propParams.paths.map((path) => get(jsonObject, path))
+  if (propParams.pathAlternatives)
+    return propParams.pathAlternatives
+      .map((path) => get(jsonObject, path))
+      .find((value) => value != null)
+  return get(jsonObject, propParams.path)
 }
