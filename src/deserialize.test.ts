@@ -136,6 +136,28 @@ describe('deserialize', () => {
       )
     })
 
+    test('Class with path alternatives', () => {
+      @Serializable()
+      class TestClass {
+        @JsonProperty({ pathAlternatives: ['treat', 'goodie'] })
+        snack: string
+      }
+
+      const jsonTreat = {
+        treat: 'Scooby Snack',
+      }
+
+      const jsonGoodie = {
+        goodie: 'Sandwich',
+      }
+      const expected = new TestClass()
+      expected.snack = jsonTreat.treat
+      expect(deserialize(jsonTreat, TestClass)).toStrictEqual(expected)
+
+      expected.snack = jsonGoodie.goodie
+      expect(deserialize(jsonGoodie, TestClass)).toStrictEqual(expected)
+    })
+
     test('Class with one to one relation', () => {
       @Serializable()
       class Dog {
